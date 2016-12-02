@@ -1,0 +1,29 @@
+consul:
+  image: consul:latest
+  ports:
+    - "8400:8400"  
+    - "8500:8500"  
+    - "8600:53/udp" 
+    - "53:53/udp" 
+
+registrator:
+  command: -internal consul://consul:8500
+  image: gliderlabs/registrator:latest
+  volumes:
+    - "/var/run/docker.sock:/tmp/docker.sock"
+  links:
+  - "consul"
+  restart: always
+
+nginx:
+  image: seges/nginx-consul:1.9.9
+  ports:
+    - "80:81"
+  environment:
+    - "SERVICE_NAME=nginx"
+    - "SERVICE_TAGS=nginx"
+  volumes:
+    - "./templates:/etc/consul-template/templates"
+    - "./conf:/etc/consul-template/conf"
+  links:
+  - "consul"
